@@ -11,11 +11,16 @@ namespace MKZeroDev.ORMTest
     {
         public DatabaseContext(string connectionString) : base(connectionString)
         {
-            base.DatabaseUpdate(this);
+
         }
 
-        public ORMTable<Category> Categories { get; set; }
-        public ORMTable<Product> Products { get; set; }
-        public ORMTable<Result> Results { get; set; }
+        public ORMTable<Category> Categories { get; set; } = default!;
+        public ORMTable<Product> Products { get; set; } = default!;
+        public ORMTable<Result> Results { get; set; } = default!;
+
+        public override void DatabaseUpdate()
+        {
+            base.DatabaseUpdate(this);
+        }
     }
 }

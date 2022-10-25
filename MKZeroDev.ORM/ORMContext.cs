@@ -1,29 +1,67 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MKZeroDev.ORM
+﻿namespace MKZeroDev.ORM
 {
     public abstract class ORMDatabase
     {
         private readonly string _connectionString = default!;
+        private readonly ORMInitializer _ormInitializer = default!;
 
-        public ORMDatabase(string connectionString)
+        protected ORMDatabase(string connectionString)
         {
             _connectionString = connectionString;
+            _ormInitializer = new ORMInitializer(_connectionString);
+
+            if (_ormInitializer.IsExistsDatabase())
+                _ormInitializer.TableInstanceInitialize(this);
         }
 
-        public void DatabaseUpdate<T>(T obj) where T : ORMDatabase
+        public abstract void DatabaseUpdate();
+
+        protected void DatabaseUpdate<T>(T obj) where T : ORMDatabase
         {
-            var ormInit = new ORMInitializer(_connectionString);
-            ormInit.DatabaseInitialize(obj);
+            _ormInitializer.DatabaseInitialize(obj);
+            _ormInitializer.TableInstanceInitialize(this);
+        }
+
+        protected ORMTable<T> ORMTableSet<T>() where T : class
+        {
+            return new ORMTable<T>(_connectionString);
         }
     }
 
     public class ORMTable<T> where T : class
     {
+        private readonly string _connectionString = default!;
+        private readonly ORMExecutor _ormExecutor = default!;
 
+        public ORMTable(string connectionString)
+        {
+            _connectionString = connectionString;
+            _ormExecutor = new ORMExecutor(_connectionString);
+        }
+
+        public int Insert(T item)
+        {
+            return _ormExecutor.Insert<T>(item);
+        }
+
+        public int Update(T item)
+        {
+            return _ormExecutor.Update(item);
+        }
+
+        public int Delete(T item)
+        {
+            return _ormExecutor.Delete<T>(item);
+        }
+
+        public IList<T> SelectAll()
+        {
+            return _ormExecutor.SelectAll<T>();
+        }
+
+        public T? SelectFirstOrDefault()
+        {
+            return _ormExecutor.SelectFirstOrDefault<T>();
+        }
     }
 }

@@ -67,6 +67,20 @@ namespace MKZeroDev.ORM
             DatabaseInitialize<T>();
         }
 
+        public void TableInstanceInitialize<T>(T obj)
+        {
+            var contextType = obj.GetType();
+            var schemaProperties = contextType.GetProperties().Where(x => x.PropertyType.IsGenericType && x.PropertyType.GetGenericTypeDefinition() == typeof(ORMTable<>)).ToList();
+
+            foreach (var schemaProp in schemaProperties)
+            {
+                var type = schemaProp.PropertyType;
+                var typeArg = type.GenericTypeArguments[0];
+                var value = ObjectReflector.CreateGenericInstance(type, new Type[] { typeArg }, new object[] { _connectionString });
+                schemaProp.SetValue(obj, value);
+            }
+        }
+
         private void CreateDatabaseIfNotExists()
         {
             try
@@ -96,6 +110,36 @@ namespace MKZeroDev.ORM
             catch (SqlException ex)
             {
                 throw new Exception("SQL database couldn't be opened or created", ex);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public bool IsExistsDatabase()
+        {
+            try
+            {
+                var connSB = new SqlConnectionStringBuilder(_connectionString);
+                var databaseName = connSB.InitialCatalog;
+                connSB.InitialCatalog = string.Empty;
+
+                using (SqlConnection conn = new SqlConnection(connSB.ConnectionString))
+                {
+                    conn.Open();
+                    var query = $"SELECT NAME FROM SYS.DATABASES WHERE NAME = '{databaseName}'";
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        var res = cmd.ExecuteScalar();
+
+                        return res != null;
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                throw new Exception("SQL database couldn't be found", ex);
             }
             catch (Exception ex)
             {

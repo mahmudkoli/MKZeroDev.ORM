@@ -16,7 +16,7 @@ namespace MKZeroDev.ORM
 
         public static object? CreateGenericInstance(Type type, Type[] typeArgs, object[] args)
         {
-            var genericType = type.MakeGenericType(typeArgs);
+            var genericType = (type.IsGenericTypeDefinition ? type : type.GetGenericTypeDefinition()).MakeGenericType(typeArgs);
             return Activator.CreateInstance(genericType, args);
         }
 
