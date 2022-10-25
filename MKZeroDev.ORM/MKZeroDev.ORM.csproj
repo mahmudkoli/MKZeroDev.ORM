@@ -4,6 +4,10 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<PackageId>MKZeroDev.ORM</PackageId>
+	<Authors>Mahmud Koli</Authors>
+	<Company>MK Zero Dev</Company>
+	<Version>1.0.0-beta</Version>
   </PropertyGroup>
 
   <ItemGroup>
