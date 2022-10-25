@@ -1,6 +1,6 @@
 ﻿namespace MKZeroDev.ORM
 {
-    public class ORMExecutor
+    internal class ORMExecutor
     {
         private readonly SQLExecutor _sqlExecutor;
 

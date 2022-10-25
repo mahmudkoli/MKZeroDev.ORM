@@ -1,7 +1,7 @@
 ﻿namespace MKZeroDev.ORM
 {
     [TableName("ORMInformations")]
-    public class ORMInformation
+    internal class ORMInformation
     {
         [PrimaryKey]
         [ColumnDef(columnType: "nvarchar(50)")]
@@ -22,7 +22,7 @@
         }
     }
 
-    public class ORMInformationColumn
+    internal class ORMInformationColumn
     {
         public string ColumnName { get; set; } = default!;
         public string ColumnType { get; set; } = default!;
@@ -30,7 +30,7 @@
     }
 
     // just use for create a query generator instance incase of don't knowing class
-    public class ORMQGTest
+    internal class ORMQGTest
     {
 
     }

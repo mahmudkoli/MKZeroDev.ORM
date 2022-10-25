@@ -5,7 +5,7 @@ using System.Dynamic;
 
 namespace MKZeroDev.ORM
 {
-    public class SQLExecutor : IDisposable
+    internal class SQLExecutor : IDisposable
     {
         private readonly string _connectionString = default!;
         private SqlConnection _connection = default!;
@@ -270,7 +270,7 @@ namespace MKZeroDev.ORM
         #endregion
 
         #region Command
-        public int ExecuteCommand(string sql, Dictionary<string, object?>? parameters = null,bool isStoredProcedure = false)
+        public int ExecuteCommand(string sql, Dictionary<string, object?>? parameters = null, bool isStoredProcedure = false)
         {
             try
             {

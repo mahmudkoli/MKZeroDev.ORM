@@ -14,7 +14,7 @@ namespace MKZeroDev.ORMTest
         [ColumnDef("Category_Name")]
         public string Name { get; set; } = default!;
         public string Description { get; set; } = default!;
-        public int Count { get; set; } = default!;
+        public int? Count { get; set; } = default!;
         public List<Product> Products { get; set; } = default!;
 
         public override string ToString()

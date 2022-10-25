@@ -2,7 +2,7 @@
 
 namespace MKZeroDev.ORM
 {
-    public static class ObjectExtensions
+    internal static class ObjectExtensions
     {
         public static string GetDbTableName<T>()
         {

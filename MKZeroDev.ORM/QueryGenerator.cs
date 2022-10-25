@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace MKZeroDev.ORM
 {
-    public class QueryGenerator<T> where T : class
+    internal class QueryGenerator<T> where T : class
     {
         private readonly string _tableName = default!;
 
@@ -88,8 +88,8 @@ namespace MKZeroDev.ORM
                 {
                     var colDef = $"\t\t{column.ColumnName} {column.ColumnType} {(column.IsNullable ? "NULL" : "NOT NULL")},";
 
-                    if (index == addColumns.Count() - 1) 
-                    { 
+                    if (index == addColumns.Count() - 1)
+                    {
                         colDef = colDef.TrimEnd(',');
                         colDef += ";";
                     }
@@ -108,8 +108,8 @@ namespace MKZeroDev.ORM
                 {
                     var colDef = $"\t\t{column.ColumnName},";
 
-                    if (index == addColumns.Count() - 1) 
-                    { 
+                    if (index == dropColumns.Count() - 1)
+                    {
                         colDef = colDef.TrimEnd(',');
                         colDef += ";";
                     }
@@ -128,8 +128,8 @@ namespace MKZeroDev.ORM
                 {
                     var colDef = $"\t\t{column.ColumnName} {column.ColumnType} {(column.IsNullable ? "NULL" : "NOT NULL")},";
 
-                    if (index == addColumns.Count() - 1) 
-                    { 
+                    if (index == modifyColumns.Count() - 1)
+                    {
                         colDef = colDef.TrimEnd(',');
                         colDef += ";";
                     }

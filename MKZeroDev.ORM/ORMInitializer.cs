@@ -2,7 +2,7 @@
 
 namespace MKZeroDev.ORM
 {
-    public class ORMInitializer
+    internal class ORMInitializer
     {
         private readonly string _connectionString = default!;
 

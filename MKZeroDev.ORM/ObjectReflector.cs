@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Reflection;
 
 namespace MKZeroDev.ORM
 {
-    public static class ObjectReflector
+    internal static class ObjectReflector
     {
         public static object? CreateInstance(Type type, object[] args)
         {
