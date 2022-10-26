@@ -1,13 +1,5 @@
-﻿using Microsoft.VisualBasic;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Text;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Net.WebRequestMethods;
 
 namespace MKZeroDev.ORM.CLI
 {
@@ -15,10 +7,9 @@ namespace MKZeroDev.ORM.CLI
     {
         static void Main(string[] args)
         {
-            //DatabaseUpdate();
-            //Console.ReadLine();
             try
             {
+                //DatabaseUpdate();
                 Console.WriteLine(string.Join("  000  ", args));
 
                 var version = Assembly.GetExecutingAssembly().GetName().Version;
@@ -96,7 +87,7 @@ namespace MKZeroDev.ORM.CLI
             var stringBuilder = new StringBuilder();
 
             stringBuilder.AppendLine("Something went wrong!");
-            stringBuilder.AppendLine();
+            stringBuilder.AppendLine(message);
 
             if (!string.IsNullOrEmpty(stackTrace))
             {
@@ -158,28 +149,37 @@ namespace MKZeroDev.ORM.CLI
 
         static void DatabaseUpdate()
         {
-            string className = "Program";
+            var connStr = "Server =.\\SQLEXPRESS; Database = ORMCore; Trusted_Connection = true";
+            var directory = Directory.GetCurrentDirectory();
+            var csprojFiles = Directory.GetFiles(directory, "*.csproj", SearchOption.AllDirectories);
+            var dllFilesName = csprojFiles.Select(csp => Path.GetFileNameWithoutExtension(csp) + ".dll").ToList();
 
-            var classes = Assembly.GetExecutingAssembly().GetTypes().Where(t =>  t.IsClass && t.Name == className);
-
-            foreach (var item in classes)
+            var dllFiles = new List<string>();
+            foreach (var dllFileName in dllFilesName)
             {
-                Console.WriteLine(item.FullName);
+                var dfs = Directory.GetFiles(directory, dllFileName, SearchOption.AllDirectories);
+                dllFiles.AddRange(dfs);
             }
 
-            Console.WriteLine("Database has been updated successfully.");
-
-            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
-
-            loadedAssemblies.SelectMany(x => x.GetReferencedAssemblies())
-                            .Distinct()
-                            .Where(y => loadedAssemblies.Any((a) => a.FullName == y.FullName) == false)
-                            .ToList()
-                            .ForEach(x => loadedAssemblies.Add(AppDomain.CurrentDomain.Load(x)));
-
-            foreach (var item in loadedAssemblies.SelectMany(x => x.GetTypes()).Where(t => t.IsClass && t.Name == className))
+            foreach (var dllFile in dllFiles)
             {
-                Console.WriteLine(item.FullName);
+                // Reference assemblies should not be loaded for execution.  They can only be loaded in the Reflection-only loader context
+                Assembly assembly = Assembly.LoadFile(dllFile);
+
+                var references = assembly.GetReferencedAssemblies();
+                foreach (var reference in references)
+                {
+                    var assm = Assembly.Load(reference.FullName);
+                }
+
+                var ormDatabaseInheritedTypes = assembly.GetTypes().Where(type => type.IsClass && !type.IsAbstract && type.IsSubclassOf(typeof(ORMDatabase))).ToList();
+
+                foreach (Type type in ormDatabaseInheritedTypes)
+                {
+                    var obj = (ORMDatabase)Activator.CreateInstance(type, new object[] { connStr });
+                    obj.DatabaseUpdate();
+                    Console.WriteLine($"Database {obj.ToString()} has been updated successfully.");
+                }
             }
 
             Console.WriteLine("Database has been updated successfully.");
