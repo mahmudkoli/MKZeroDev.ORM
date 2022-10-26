@@ -1,0 +1,12 @@
+nuget orm package api key: oy2gbf4x7bf6vsteukta6zl56ou7y3iu3kscxpjktuoh2i
+
+nuget pack: dotnet pack
+
+nuget orm package push: dotnet nuget push ./nupkg/MKZeroDev.ORM.1.0.0-beta.nupkg -k oy2gbf4x7bf6vsteukta6zl56ou7y3iu3kscxpjktuoh2i -s https://api.nuget.org/v3/index.json
+
+nuget orm cli tool install locally: dotnet tool install -g --add-source ./nupkg MKZeroDev.ORM.CLI --version 1.0.0-beta
+
+nuget orm cli tool update locally: dotnet tool update -g --add-source ./nupkg MKZeroDev.ORM.CLI --version 1.0.0-beta
+
+nuget orm cli tool uninstall: dotnet tool uninstall -g MKZeroDev.ORM.CLI
+

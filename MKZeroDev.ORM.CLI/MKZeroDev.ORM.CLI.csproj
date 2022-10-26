@@ -11,6 +11,7 @@
 	<Version>1.0.0-beta</Version>
 	<PackAsTool>true</PackAsTool>
 	<ToolCommandName>mkzerodev</ToolCommandName>
+	<PackageOutputPath>./nupkg</PackageOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

@@ -8,6 +8,7 @@
 	<Authors>Mahmud Koli</Authors>
 	<Company>MK Zero Dev</Company>
 	<Version>1.0.0-beta</Version>
+	<PackageOutputPath>./nupkg</PackageOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

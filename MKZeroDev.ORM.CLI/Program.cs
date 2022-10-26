@@ -15,8 +15,8 @@ namespace MKZeroDev.ORM.CLI
     {
         static void Main(string[] args)
         {
-            DatabaseUpdate();
-            Console.ReadLine();
+            //DatabaseUpdate();
+            //Console.ReadLine();
             try
             {
                 Console.WriteLine(string.Join("  000  ", args));
