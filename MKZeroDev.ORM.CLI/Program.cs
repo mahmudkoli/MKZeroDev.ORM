@@ -9,6 +9,27 @@ namespace MKZeroDev.ORM.CLI
         static void Main(string[] args)
         {
             //args = "orm database-update --conn Server=.\\SQLEXPRESS;Database=ORMCore;Trusted_Connection=true".Split(' ');
+
+            //foreach (Type type in new Type[] { typeof(ORMDatabase) })
+            //{
+            //    var ctor = type.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, new Type[] { typeof(string) });
+            //    var ctors = type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic);
+
+            //    foreach (var ct in ctors)
+            //    {
+            //        Console.WriteLine($"Constructor {ct.Name} params {string.Join(", ", ct.GetParameters().Select(x => x.ParameterType.FullName))}");
+            //    }
+
+            //    if (ctor.GetParameters().Any())
+            //        Console.WriteLine($"Taking params {string.Join(", ", ctor.GetParameters().Select(x => x.ParameterType.FullName))}");
+            //    else Console.WriteLine("No params to take");
+
+            //    Console.WriteLine($"Database {type.ToString()} updating...");
+            //    var obj = (ORMDatabase)Activator.CreateInstance(type, new object[] { args[2] });
+            //    obj.DatabaseUpdate();
+            //    Console.WriteLine($"Database {obj.ToString()} has been updated successfully.");
+            //}
+
             try
             {
                 if (args == null || args.Length == 0)
@@ -79,11 +100,18 @@ namespace MKZeroDev.ORM.CLI
             }
             catch (Exception ex)
             {
+                var errorMsg = ex.Message;
+
                 // can't catch internal type
                 if (ex.StackTrace?.Contains("ThrowOperationCanceledException") ?? false)
                     return;
 
-                ShowError(ex.Message, ex.StackTrace, ex.Source);
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                }
+
+                ShowError(errorMsg, ex.StackTrace, ex.Source);
             }
         }
 
@@ -172,7 +200,7 @@ namespace MKZeroDev.ORM.CLI
         static void DatabaseUpdate(string connStr)
         {
             var directory = Directory.GetCurrentDirectory();
-            var csprojFiles = Directory.GetFiles(directory, "*.csproj", SearchOption.AllDirectories);
+            var csprojFiles = Directory.GetFiles(directory, "*.csproj", SearchOption.TopDirectoryOnly);
             var dllFilesName = csprojFiles.Select(csp => Path.GetFileNameWithoutExtension(csp) + ".dll").ToList();
 
             var dllFiles = new List<string>();
@@ -187,23 +215,36 @@ namespace MKZeroDev.ORM.CLI
                 // Reference assemblies should not be loaded for execution.  They can only be loaded in the Reflection-only loader context
                 Assembly assembly = Assembly.LoadFile(dllFile);
 
-                var references = assembly.GetReferencedAssemblies();
-                foreach (var reference in references)
-                {
-                    var assm = Assembly.Load(reference.FullName);
-                }
+                //var references = assembly.GetReferencedAssemblies();
+                //foreach (var reference in references)
+                //{
+                //    var assm = Assembly.Load(reference.FullName);
+                //}
 
                 var ormDatabaseInheritedTypes = assembly.GetTypes().Where(type => type.IsClass && !type.IsAbstract && type.IsSubclassOf(typeof(ORMDatabase))).ToList();
 
                 foreach (Type type in ormDatabaseInheritedTypes)
                 {
-                    var obj = (ORMDatabase)Activator.CreateInstance(type, new object[] { connStr });
-                    obj.DatabaseUpdate();
-                    Console.WriteLine($"Database {obj.ToString()} has been updated successfully.");
+                    var ctor = type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, new Type[] { typeof(string) });
+                    var ctors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
+
+                    foreach (var ct in ctors)
+                    {
+                        Console.WriteLine($"Constructor {ct.Name} params {string.Join(", ", ct.GetParameters().Select(x => x.ParameterType.FullName))}");
+                    }
+
+                    if (ctor?.GetParameters().Any()??false)
+                        Console.WriteLine($"Taking params {string.Join(", ", ctor.GetParameters().Select(x => x.ParameterType.FullName))}");
+                    else Console.WriteLine("No params to take");
+
+                    Console.WriteLine($"Database {type.ToString()} updating...");
+                    var obj = (ORMDatabase?)Activator.CreateInstance(type, new object[] { connStr });
+                    obj?.DatabaseUpdate();
+                    Console.WriteLine($"Database {obj?.ToString()} has been updated successfully.");
                 }
             }
 
-            Console.WriteLine("Database has been updated successfully.");
+            Console.WriteLine("Database update completed.");
         }
     }
 }
