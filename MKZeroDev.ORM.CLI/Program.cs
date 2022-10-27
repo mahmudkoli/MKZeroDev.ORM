@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Drawing;
+using System.Reflection;
 using System.Text;
 
 namespace MKZeroDev.ORM.CLI
@@ -7,17 +8,9 @@ namespace MKZeroDev.ORM.CLI
     {
         static void Main(string[] args)
         {
+            //args = "orm database-update --conn Server=.\\SQLEXPRESS;Database=ORMCore;Trusted_Connection=true".Split(' ');
             try
             {
-                //DatabaseUpdate();
-                Console.WriteLine(string.Join("  000  ", args));
-
-                var version = Assembly.GetExecutingAssembly().GetName().Version;
-                var ver = version.Major + "." + version.Minor +
-                          (version.Build > 0 ? "." + version.Build : string.Empty);
-
-                Console.WriteLine(ver);
-
                 if (args == null || args.Length == 0)
                 {
                     ShowGeneralHelp();
@@ -30,7 +23,7 @@ namespace MKZeroDev.ORM.CLI
                     return;
                 }
 
-                if (args[0] == "--info")
+                if (args[0] == "--info" || args[0] == "-i")
                 {
                     ShowMessage("Information...");
                     return;
@@ -60,34 +53,46 @@ namespace MKZeroDev.ORM.CLI
                     return;
                 }
 
-                if (args.Length > 1 && (args[1] != "database-update"))
+                if (args.Length > 1 && (args[1] == "database-update"))
                 {
-                    ShowInvalidCommandError();
+                    var connStrIn = args.ToList().IndexOf("--conn");
+                    if (args.Length <= (connStrIn+1))
+                    {
+                        ShowInvalidCommandError();
+                        return;
+                    }
+
+                    var connStr = args[connStrIn + 1];
+                    if (string.IsNullOrEmpty(connStr))
+                    {
+                        ShowInvalidCommandError();
+                        return;
+                    }
+
+                    Console.WriteLine(connStr);
+                    DatabaseUpdate(connStr);
                     return;
                 }
 
-                if (args.Length > 1 && (args[1] == "database-update"))
-                {
-                    DatabaseUpdate();
-                    return;
-                }
+                ShowInvalidCommandError();
+                return;
             }
             catch (Exception ex)
             {
                 // can't catch internal type
-                if (ex.StackTrace.Contains("ThrowOperationCanceledException"))
+                if (ex.StackTrace?.Contains("ThrowOperationCanceledException") ?? false)
                     return;
 
                 ShowError(ex.Message, ex.StackTrace, ex.Source);
             }
         }
 
-        static void ShowError(string message, string stackTrace = null, string source = null)
+        static void ShowError(string message, string? stackTrace = null, string? source = null)
         {
             var stringBuilder = new StringBuilder();
 
-            stringBuilder.AppendLine("Something went wrong!");
-            stringBuilder.AppendLine(message);
+            stringBuilder.AppendLine($"Something went wrong! {Environment.NewLine} {message}");
+            stringBuilder.AppendLine();
 
             if (!string.IsNullOrEmpty(stackTrace))
             {
@@ -102,6 +107,23 @@ namespace MKZeroDev.ORM.CLI
 
         static void ShowGeneralHelp()
         {
+            Console.ForegroundColor = ConsoleColor.Green;
+
+            //ConsoleHelper.SetConsoleFont(5);
+            //ConsoleHelper.SetConsoleIcon(SystemIcons.Information);
+            //ConsoleHelperNew.SetCurrentFont("Consolas", 10);
+
+            Console.WriteLine();
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            var ver = version.Major + "." + version.Minor +
+                      (version.Build > 0 ? "." + version.Build : string.Empty);
+
+            Console.WriteLine($"Greetings from MAHMUD KOLI");
+            Console.WriteLine($"MKZeroDev CLI Version {ver}");
+            Console.WriteLine();
+
+            Console.ResetColor();
+
             var stringBuilder = new StringBuilder();
 
             stringBuilder.AppendLine("Usage: mkzerodev [options]");
@@ -147,9 +169,8 @@ namespace MKZeroDev.ORM.CLI
             Console.WriteLine(msg);
         }
 
-        static void DatabaseUpdate()
+        static void DatabaseUpdate(string connStr)
         {
-            var connStr = "Server =.\\SQLEXPRESS; Database = ORMCore; Trusted_Connection = true";
             var directory = Directory.GetCurrentDirectory();
             var csprojFiles = Directory.GetFiles(directory, "*.csproj", SearchOption.AllDirectories);
             var dllFilesName = csprojFiles.Select(csp => Path.GetFileNameWithoutExtension(csp) + ".dll").ToList();
