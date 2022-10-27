@@ -10,7 +10,7 @@ namespace MKZeroDev.ORM.CLI
     {
         private static string _projDir = Directory.GetCurrentDirectory();
         private static string _outputDir = @"bin\Debug";
-        private static bool _buildAssembly = true;
+        private static bool _buildAssembly = false;
         private static string _connStr = default!;
 
         static void Main(string[] args)
@@ -63,22 +63,35 @@ namespace MKZeroDev.ORM.CLI
 
                 if (args.Length > 1 && (args[1] == "database-update"))
                 {
-                    var connStrIn = args.ToList().IndexOf("--conn");
-                    if (args.Length <= (connStrIn + 1) || string.IsNullOrEmpty(_connStr = args[connStrIn + 1]))
+                    var connStrIn = args.ToList().IndexOf("--connStr");
+                    if (connStrIn > -1 && args.Length > (connStrIn + 1) && !string.IsNullOrEmpty(args[connStrIn + 1]))
                     {
-                        ShowInvalidCommandError();
-                        return;
+                        _connStr = args[connStrIn + 1];
                     }
 
-                    //_connStr = args[connStrIn + 1];
-                    //if (string.IsNullOrEmpty(_connStr))
-                    //{
-                    //    ShowInvalidCommandError();
-                    //    return;
-                    //}
+                    var projDirIn = args.ToList().IndexOf("--projDir");
+                    if (projDirIn > -1 && args.Length > (projDirIn + 1) && !string.IsNullOrEmpty(args[projDirIn + 1]))
+                    {
+                        _projDir = args[projDirIn + 1];
+                    }
 
-                    DatabaseUpdate();
-                    return;
+                    var outputDirIn = args.ToList().IndexOf("--outDir");
+                    if (outputDirIn > -1 && args.Length > (outputDirIn + 1) && !string.IsNullOrEmpty(args[outputDirIn + 1]))
+                    {
+                        _outputDir = args[outputDirIn + 1];
+                    }
+
+                    var buildAsm = args.ToList().IndexOf("--build");
+                    if (buildAsm > -1)
+                    {
+                        _buildAssembly = true;
+                    }
+
+                    if (!string.IsNullOrEmpty(_connStr) && !string.IsNullOrEmpty(_projDir) && !string.IsNullOrEmpty(_outputDir))
+                    {
+                        DatabaseUpdate();
+                        return;
+                    }
                 }
 
                 ShowInvalidCommandError();
@@ -104,7 +117,7 @@ namespace MKZeroDev.ORM.CLI
         static void Test()
         {
             _projDir = @"D:\Practice\MKZeroDev\MKZeroDev.ORM\MKZeroDev.ORMTest";
-            _outputDir = "bin\\Debug";
+            _outputDir = @"bin\Debug";
             _connStr = @"Server=.\SQLEXPRESS;Database=ORMCore;Trusted_Connection=true";
             _buildAssembly = true;
             DatabaseUpdate();
@@ -118,14 +131,6 @@ namespace MKZeroDev.ORM.CLI
             stringBuilder.AppendLine(message);
             stringBuilder.AppendLine();
 
-            if (!string.IsNullOrEmpty(stackTrace))
-            {
-                stringBuilder.AppendLine("----- Error Info -----");
-                stringBuilder.AppendLine(stackTrace);
-                stringBuilder.AppendLine(source);
-                stringBuilder.AppendLine("----------------------");
-            }
-
             Console.WriteLine(stringBuilder.ToString());
         }
 
@@ -133,14 +138,10 @@ namespace MKZeroDev.ORM.CLI
         {
             Console.ForegroundColor = ConsoleColor.Green;
 
-            //ConsoleHelper.SetConsoleFont(5);
-            //ConsoleHelper.SetConsoleIcon(SystemIcons.Information);
-            //ConsoleHelperNew.SetCurrentFont("Consolas", 10);
-
             Console.WriteLine();
             var version = Assembly.GetExecutingAssembly().GetName().Version;
-            var ver = version.Major + "." + version.Minor +
-                      (version.Build > 0 ? "." + version.Build : string.Empty);
+            var ver = version?.Major + "." + version?.Minor +
+                      (version?.Build > 0 ? "." + version?.Build : string.Empty);
 
             Console.WriteLine($"Greetings from MAHMUD KOLI");
             Console.WriteLine($"MKZeroDev CLI Version {ver}");
@@ -200,18 +201,6 @@ namespace MKZeroDev.ORM.CLI
 
             foreach (Type type in ormDatabaseInheritedTypes)
             {
-                var ctor = type.GetConstructor(BindingFlags.Instance | BindingFlags.Public, new Type[] { typeof(string) });
-                var ctors = type.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
-
-                foreach (var ct in ctors)
-                {
-                    Console.WriteLine($"Constructor {ct.Name} params {string.Join(", ", ct.GetParameters().Select(x => x.ParameterType.FullName))}");
-                }
-
-                if (ctor?.GetParameters().Any() ?? false)
-                    Console.WriteLine($"Taking params {string.Join(", ", ctor.GetParameters().Select(x => x.ParameterType.FullName))}");
-                else Console.WriteLine("No params to take");
-
                 Console.WriteLine($"Database {type.ToString()} updating...");
                 var obj = (ORMDatabase?)Activator.CreateInstance(type, new object[] { _connStr });
                 obj?.DatabaseUpdate();
@@ -244,8 +233,12 @@ namespace MKZeroDev.ORM.CLI
             {
                 foreach (var csprojFile in projFiles)
                 {
+                    Console.WriteLine($"Project {Path.GetFileName(csprojFile)} building...");
                     BuildAssemblyMSBuildWithRegister(csprojFile, _outputDir);
+                    Console.WriteLine($"Project {Path.GetFileName(csprojFile)} has been built successfully.");
                 }
+
+                Console.WriteLine("Project build completed.");
             }
 
             var dllFilesName = projFiles.Select(csp => Path.GetFileNameWithoutExtension(csp) + ".dll").ToList();
@@ -264,12 +257,6 @@ namespace MKZeroDev.ORM.CLI
                 Assembly assembly = Assembly.LoadFile(dllFile);
 
                 if (!IsAssemblyDebugBuild(assembly)) continue;
-
-                var refAssemblies = assembly.GetReferencedAssemblies();
-                foreach (var refAssembly in refAssemblies)
-                {
-                    var assm = Assembly.Load(refAssembly.FullName);
-                }
 
                 assemblies.Add(assembly);
             }

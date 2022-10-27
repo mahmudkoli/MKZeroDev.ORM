@@ -10,3 +10,5 @@ nuget orm cli tool update locally: dotnet tool update -g --add-source ./nupkg MK
 
 nuget orm cli tool uninstall: dotnet tool uninstall -g MKZeroDev.ORM.CLI
 
+nuget orm cli tool push: dotnet nuget push ./nupkg/MKZeroDev.ORM.1.0.0-beta.nupkg -k oy2hk57c6pwpgrdltueqjclna6pggeeuvfprmkaevvk2hq -s https://api.nuget.org/v3/index.json
+
