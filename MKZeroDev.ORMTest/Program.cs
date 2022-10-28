@@ -2,7 +2,7 @@
 using MKZeroDev.ORMTest;
 
 var context = new DatabaseContext("Server =.\\SQLEXPRESS; Database = ORMCore; Trusted_Connection = true");
-//context.DatabaseUpdate();
+context.DatabaseUpdate();
 
 //context.Categories.Insert(new Category { Id = Guid.NewGuid(), Name = "TV", Description = "Television", Count = 15 });
 //context.Categories.Insert(new Category { Id = Guid.NewGuid(), Name = "PC", Description = "Personal Computer", Count = 10 });

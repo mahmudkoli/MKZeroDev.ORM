@@ -44,4 +44,16 @@
 
         }
     }
+
+    [AttributeUsage(AttributeTargets.Property)]
+    public class ForeignKeyAttribute : Attribute
+    {
+        private readonly string _propertyName = default!; // Navigation or Foreign Key
+        public string PropertyName { get { return _propertyName; } } // Navigation or Foreign Key
+
+        public ForeignKeyAttribute(string propertyName)
+        {
+            _propertyName = propertyName;
+        }
+    }
 }

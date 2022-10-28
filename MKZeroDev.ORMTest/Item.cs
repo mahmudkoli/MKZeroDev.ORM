@@ -33,6 +33,8 @@ namespace MKZeroDev.ORMTest
         public decimal UnitPrice { get; set; } = default!;
         public decimal? TotalPrice { get; set; } = default!;
         public bool IsDefault { get; set; }
+
+        [ForeignKey(nameof(Category))]
         public Guid? CategoryId { get; set; }
         public Category Category { get; set; } = default!;
 

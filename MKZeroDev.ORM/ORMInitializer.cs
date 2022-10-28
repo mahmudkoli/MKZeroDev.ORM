@@ -32,8 +32,9 @@ namespace MKZeroDev.ORM
             foreach (var currentSchemaType in currentSchemaTypes)
             {
                 var type = currentSchemaType.GenericTypeArguments[0];
-                var obj = ObjectReflector.CreateInstance(type, new object[] { });
-                var tableName = (string?)ObjectReflector.CallGenericStaticMethod(typeof(ObjectExtensions), nameof(ObjectExtensions.GetDbTableName), new Type[] { type }, new Type[] { }, new object[] { });
+                //var obj = ObjectReflector.CreateInstance(type, new object[] { });
+                //var tableName = (string?)ObjectReflector.CallGenericStaticMethod(typeof(ObjectExtensions), nameof(ObjectExtensions.GetDbTableName), new Type[] { type }, new Type[] { }, new object[] { });
+                var tableName = ObjectExtensions.GetDbTableName(type);
                 currentSchemas.Add(tableName, type);
             }
 

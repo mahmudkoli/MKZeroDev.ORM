@@ -20,10 +20,21 @@ namespace MKZeroDev.ORM
 
             return tableName;
         }
-
-        public static string GetDbTableName<T>(T obj)
+        
+        public static string GetDbTableName(Type type)
         {
-            return GetDbTableName<T>();
+            var tableName = type.Name;
+
+            object[] attrs = type.GetCustomAttributes(true);
+            foreach (var attr in attrs)
+            {
+                if (attr is TableNameAttribute tableNameAttr)
+                {
+                    tableName = tableNameAttr.TableName;
+                }
+            }
+
+            return tableName;
         }
         
         public static (string ColumnName, string ColumnType, bool IsNullable) GetDbColumnDef(PropertyInfo property)
@@ -173,6 +184,82 @@ namespace MKZeroDev.ORM
             }
 
             return primaryKeys;
+        }
+        
+        public static List<PropertyInfo> GetPrimaryKeys(Type type)
+        {
+            var properties = type.GetProperties();
+            var primaryKeys = new List<PropertyInfo>();
+
+            foreach (var property in properties)
+            {
+                object[] attrs = property.GetCustomAttributes(true);
+                foreach (var attr in attrs)
+                {
+                    if (attr is PrimaryKeyAttribute primaryKeyAttr)
+                    {
+                        primaryKeys.Add(property);
+                    }
+                }
+            }
+
+            return primaryKeys;
+        }
+        
+        public static Dictionary<string, (string RefTableName, string RefColumnName)> GetDbForeignKeys<T>()
+        {
+            var type = typeof(T);
+            var properties = type.GetProperties();
+            var foreignKeys = new Dictionary<string, (string TableName, string ColumnName)>();
+
+            foreach (var property in properties)
+            {
+                object[] attrs = property.GetCustomAttributes(true);
+                foreach (var attr in attrs)
+                {
+                    if (attr is ForeignKeyAttribute foreignKeyAttr)
+                    {
+                        // decide which is the foreign key and navigation
+                        PropertyInfo fkProp = null!;
+                        PropertyInfo refProp = null!;
+
+                        if (IsGenericOrClassRef(property))
+                        {
+                            refProp = property;
+                            fkProp = properties.FirstOrDefault(p => p.Name == foreignKeyAttr.PropertyName) ?? throw new ArgumentNullException($"Property {foreignKeyAttr.PropertyName} not found");
+                        }
+                        else
+                        {
+                            fkProp = property;
+                            refProp = properties.FirstOrDefault(p => p.Name == foreignKeyAttr.PropertyName) ?? throw new ArgumentNullException($"Property {foreignKeyAttr.PropertyName} not found");
+                        }
+
+                        if (fkProp.PropertyType.IsGenericType)
+                            throw new ArgumentOutOfRangeException($"Property {fkProp.PropertyType.Name} generic type not allowed");
+                        if (refProp.PropertyType.IsGenericType)
+                            throw new ArgumentOutOfRangeException($"Property {refProp.PropertyType.Name} generic type not allowed");
+
+                        // get the db table column name
+                        PropertyInfo refTablePKProp = null!;
+                        string fkColDbName = null!;
+                        string refTableDbName = null!;
+                        string refTablePKColDbName = null!;
+
+                        var refTablePKProps = GetPrimaryKeys(refProp.PropertyType);
+                        if (refTablePKProps.Count != 1)
+                            throw new ArgumentOutOfRangeException($"There is no or multiple primary column found in {refProp.PropertyType.Name}");
+                        
+                        refTablePKProp = refTablePKProps[0];
+                        fkColDbName = GetDbColumnDef(fkProp).ColumnName;
+                        refTableDbName = GetDbTableName(refProp.PropertyType);
+                        refTablePKColDbName = GetDbColumnDef(refTablePKProp).ColumnName;
+
+                        foreignKeys.Add(fkColDbName, (refTableDbName, refTablePKColDbName));
+                    }
+                }
+            }
+
+            return foreignKeys;
         }
 
         public static Dictionary<string, object?> GetDbPrimaryKeysValues<T>(T obj)

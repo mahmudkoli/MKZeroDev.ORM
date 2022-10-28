@@ -50,6 +50,7 @@ namespace MKZeroDev.ORM
             var type = typeof(T);
             var properties = type.GetProperties();
             var primaryKeys = ObjectExtensions.GetDbPrimaryKeys<T>();
+            var foreignKeys = ObjectExtensions.GetDbForeignKeys<T>();
 
             foreach (var (property, index) in properties.Select((property, index) => (property, index)))
             {
@@ -65,7 +66,28 @@ namespace MKZeroDev.ORM
             if (primaryKeys.Any())
                 querySB.AppendLine($"\tCONSTRAINT PK_{_tableName} PRIMARY KEY ({string.Join(',', primaryKeys)})");
 
-            querySB.AppendLine(")");
+            querySB.AppendLine(");");
+            querySB.AppendLine();
+
+            // foreign keys added if exists
+            if (foreignKeys.Any())
+            {
+                querySB.AppendLine($"ALTER TABLE {_tableName}");
+
+                foreach (var (keyvalue, index) in foreignKeys.Select((keyvalue, index) => (keyvalue, index)))
+                {
+                    var colDef = $"\tADD CONSTRAINT FK_{_tableName}_{keyvalue.Value.RefTableName}_{keyvalue.Value.RefColumnName} FOREIGN KEY ({keyvalue.Key}) REFERENCES {keyvalue.Value.RefTableName}({keyvalue.Value.RefColumnName}),";
+
+                    if (index == foreignKeys.Count() - 1)
+                    {
+                        colDef = colDef.TrimEnd(',');
+                        colDef += ";";
+                    }
+                    querySB.AppendLine(colDef);
+                }
+            }
+            querySB.AppendLine();
+
 
             return querySB.ToString();
         }
