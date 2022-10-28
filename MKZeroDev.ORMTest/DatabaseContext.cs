@@ -15,7 +15,7 @@ namespace MKZeroDev.ORMTest
 
         public override void DatabaseUpdate()
         {
-            base.DatabaseUpdate(this);
+            base.DatabaseUpdate();
         }
     }
 }

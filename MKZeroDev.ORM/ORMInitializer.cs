@@ -11,7 +11,7 @@ namespace MKZeroDev.ORM
             _connectionString = connectionString;
         }
 
-        public void DatabaseInitialize<T>() where T : ORMDatabase
+        public void DatabaseInitialize<T>(T db)
         {
             // database create if not exists
             CreateDatabaseIfNotExists();
@@ -25,7 +25,7 @@ namespace MKZeroDev.ORM
             var existingSchemas = ormExecutor.GetExistingDBSchemas();
 
             // current schemas
-            var contextType = typeof(T);
+            var contextType = db.GetType();
             var currentSchemaTypes = contextType.GetProperties().Where(x => x.PropertyType.IsGenericType && x.PropertyType.GetGenericTypeDefinition() == typeof(ORMTable<>)).Select(x => x.PropertyType).ToList();
             
             var currentSchemas = new Dictionary<string, Type>();
@@ -60,11 +60,6 @@ namespace MKZeroDev.ORM
 
                 ormExecutor.DropTable(existingSchema.TableName);
             }
-        }
-
-        public void DatabaseInitialize<T>(T obj) where T : ORMDatabase
-        {
-            DatabaseInitialize<T>();
         }
 
         public void TableInstanceInitialize<T>(T obj)

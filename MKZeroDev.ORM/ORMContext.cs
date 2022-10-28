@@ -14,12 +14,16 @@
                 _ormInitializer.TableInstanceInitialize(this);
         }
 
-        public abstract void DatabaseUpdate();
+        public virtual void DatabaseUpdate()
+        {
+            _ormInitializer.DatabaseInitialize(this);
+            _ormInitializer.TableInstanceInitialize(this);
+        }
 
-        protected void DatabaseUpdate<T>(T obj) where T : ORMDatabase
+        protected virtual void DatabaseUpdate<T>(T obj) where T : class
         {
             _ormInitializer.DatabaseInitialize(obj);
-            _ormInitializer.TableInstanceInitialize(this);
+            _ormInitializer.TableInstanceInitialize(obj);
         }
 
         protected ORMTable<T> ORMTableSet<T>() where T : class
