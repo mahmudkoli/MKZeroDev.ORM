@@ -106,7 +106,7 @@ namespace MKZeroDev.ORM
             else if (type == typeof(DateTime) || type == typeof(DateTime?)) return "datetime2";
             else if (type == typeof(DateTimeOffset) || type == typeof(DateTimeOffset?)) return "datetimeoffset";
             else if (type == typeof(Guid) || type == typeof(Guid?)) return "uniqueidentifier";
-            else if (type == typeof(byte[])) return "varbinary";
+            else if (type == typeof(byte[])) return $"varbinary({(length ?? "max")})";
             else if (type == typeof(char) || type == typeof(char?)) return "nvarchar(1)";
             else throw new ArgumentOutOfRangeException("Type");
         }

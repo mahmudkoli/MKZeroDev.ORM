@@ -63,7 +63,7 @@ namespace MKZeroDev.ORM
 
             // primary keys added if exists
             if (primaryKeys.Any())
-                querySB.AppendLine($"\tPRIMARY KEY ({string.Join(',', primaryKeys)})");
+                querySB.AppendLine($"\tCONSTRAINT PK_{_tableName} PRIMARY KEY ({string.Join(',', primaryKeys)})");
 
             querySB.AppendLine(")");
 
